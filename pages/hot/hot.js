@@ -3,13 +3,13 @@ var app = getApp();
 Page({
   data: {
     list: [],
-    kind: 'jobhot',
+    kind: 'select/heat',
     keyword: '',
     anim: {}
   },
   onShareAppMessage: function () {
     return {
-      title: 'OfferShow-最可信的校招薪水交流平台',
+      title: '校招薪水交流平台',
       path: 'pages/hot/hot',
       success: function(res) {
         wx.showToast({
@@ -35,15 +35,17 @@ Page({
       data: pastData,
       success: function(res) {
         // success
-        var list = res.data.info;
+        var list = res.data;
+        console.log("hot get list:",list);
           // select unique corperation
           var hash = {};
           var filted = [];
           var temp = {
-            'company': '',
+            'company': list.companyName,
             'number': 0,
             'positions': []
           };
+          /*
           var ii = 0;
           list.forEach((v, i) => {
             if (hash.hasOwnProperty(v.company)) {
@@ -63,9 +65,9 @@ Page({
 
           filted.sort((a, b)=>{
             return b.number - a.number;
-          });
+          });*/
           _this.setData({
-            list: filted,
+            list: list,
             corpMode: true
           });
       },
@@ -85,7 +87,7 @@ Page({
   },
   onLoad: function(options) {
     // 页面初始化 options为页面跳转所带来的参数
-    this.getInfo([app.globalData.domain, 'webapi', this.data.kind, ''].join('/'));
+    this.getInfo([app.globalData.domain, 'offer', this.data.kind, ''].join('/'));
   },
   onReady: function() {
     // 页面渲染完成
