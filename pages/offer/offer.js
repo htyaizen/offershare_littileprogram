@@ -14,7 +14,8 @@ Page({
         anim: {},
         searchhistory: [],
         inputval:'',
-        keyword: '',            
+        keyword: '',   
+        
     },
     cache : [],
     //转发
@@ -37,16 +38,20 @@ Page({
      
     /*页面加载，一个页面只会调用一次,接收页面参数   
     可以获取wx.navigateTo和wx.redirectTo及<navigator/>中的 query*/
-    onLoad: function(options) {
+    /*onLoad: function(options) {
     
-    },
+    },*/
     /*页面显示,每次打开页面都会调用一次。访问后台获取信息 */
-    onShow: function(){
+    onHide:function(){
+
+    },
+    onLoad: function(){
     // 页面初始化 
         if (app.globalData.needReq || this.cache.length < 1) {
           app.globalData.needReq = false;
+          offset=app.globalData.page;
           //调用getInfo，我需要一个后台提供的url,获取list信息(url，pastData,cache)
-          this.getInfo([app.globalData.domain, 'offer/select', this.data.kind, ''].join('/'), {}, true);
+          this.getInfo([app.globalData.domain, 'offer/select', this.data.kind].join('/'), {}, true);
           //转发小程序函数
           //this.getAds();
           //是最新列表而非搜索页
@@ -56,12 +61,6 @@ Page({
           this.setData({
             'searchhistory':wx.getStorageSync('searchhistory') || []
           });  
-          /*
-          wx.setStorageSync('pagehistory', this.data.list);
-          console.log(wx.getStorageSync('pagehistory'));
-          this.setData({
-            'pagehistory': wx.getStorageSync('pagehistory') || []
-          });  */
          
         }
         /*
@@ -74,71 +73,6 @@ Page({
         */        
     },
     
-/*    // 下拉刷新  
-    onPullDownRefresh: function () {
-      // 显示顶部刷新图标  
-      wx.showNavigationBarLoading();
-      var that = this;
-      wx.request({
-        url: 'https://xxx/?page=0',
-        method: "GET",
-        header: {
-          'content-type': 'application/json'
-        },
-        success: function (res) {
-          that.setData({
-            list: list,
-            hasData: list.length ? true : false
-          });
-          // 设置数组元素  
-          that.setData({
-            list: that.data.moment
-          });
-          console.log(that.data.moment);
-          // 隐藏导航栏加载框  
-          wx.hideNavigationBarLoading();
-          // 停止下拉动作  
-          wx.stopPullDownRefresh();
-        }
-      })
-    },  
-
-    
-   // 页面上拉触底事件的处理函数 
-   
-    onReachBottom: function () {
-      var that = this;
-      // 显示加载图标  
-      wx.showLoading({
-        title: '玩命加载中',
-      })
-      // 页数+1  
-      page = page + 1;
-      wx.request({
-        url: 'https://xxx/?page=' + page,
-        method: "GET",
-        // 请求头部  
-        header: {
-          'content-type': 'application/json'
-        },
-        success: function (res) {
-          // 回调函数  
-          var offer_list = that.data.moment;
-
-          for (var i = 0; i < res.data.data.length; i++) {
-            offer_list.push(res.data.data[i]);
-          }
-          // 设置数据  
-          that.setData({
-            moment: that.data.moment
-          })
-          // 隐藏加载框  
-          wx.hideLoading();
-        }
-      })
-    },  
-*/
-    //i can't  understand
     /*
     getAds: function() {
       var _this = this;
@@ -191,6 +125,7 @@ Page({
               wx.hideToast(); //隐藏消息提示框
             }
             //更新data的list
+          
             _this.setData({
               list: app.globalData.offerpagehistory.concat(list),   
               hasData: list.length?true:false
@@ -318,65 +253,40 @@ Page({
         });
     },
     /** 
-   * 页面上拉触底事件的处理函数 
+   * 页面下拉刷新事件的处理函数 
    */  
+  onPullDownRefresh: function () {
+    wx.showNavigationBarLoading();
+    //app.offerlimit=(app.page+1)*10
+    // 隐藏导航栏加载框  
+   // app.globalData.offerpagehistory = app.globalData.offerpagehistorycache;
+    app.globalData.offerlimit = app.globalData.offerpagehistory.length;
+    app.globalData.offerpagehistory=[];
+    
+    this.getInfo([app.globalData.domain, 'offer/select', this.data.kind, '?limit=' + app.globalData.offerlimit].join('/'), {}, true);
+    wx.hideNavigationBarLoading();
+    // 停止下拉动作  
+    wx.stopPullDownRefresh();
+    
+    },
+    /** 
+   * 页面上拉触底事件的处理函数 
+   */
   onReachBottom: function () {
       var that = this;
-      var history=this.data.list;
+      //var history=this.data.list;
+      
       console.log("history:",history);
       // 显示加载图标  
       wx.showLoading({
         title: '玩命加载中',
       })
       // 页数+1  
+      
       app.globalData.page = app.globalData.page + 1;
-      limit = (app.globalData.page+1)*10;
+      console.log("pagetime:",app.globalData.page);
       offset = app.globalData.page*10;
       this.getInfo([app.globalData.domain, 'offer/select', this.data.kind, '?offset='+offset].join('/'), {}, true);
-      /*
-      this.setData({
-        list: this.list+history,
-        hasData: list.length ? true : false
-      });*/
       
-      /*
-      success: function (res) {
-        // 回调函数  
-        var moment_list = that.data.moment;
-
-        for (var i = 0; i < res.data.data.length; i++) {
-          moment_list.push(res.data.data[i]);
-        }
-        // 设置数据  
-        that.setData({
-          moment: that.data.moment
-        })
-        // 隐藏加载框  
-        wx.hideLoading();
-      }*/
-      /*
-      wx.request({
-        url: 'https://xxx/?page=' + page,
-        method: "GET",
-        // 请求头部  
-        header: {
-          'content-type': 'application/text'
-        },
-        success: function (res) {
-          // 回调函数  
-          var moment_list = that.data.moment;
-
-          for (var i = 0; i < res.data.data.length; i++) {
-            moment_list.push(res.data.data[i]);
-          }
-          // 设置数据  
-          that.setData({
-            moment: that.data.moment
-          })
-          // 隐藏加载框  
-          wx.hideLoading();
-        }
-      })*/
-
     }, 
 });
